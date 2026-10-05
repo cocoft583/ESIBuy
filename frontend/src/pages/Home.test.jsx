@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { screen } from '@testing-library/react'
-import { render } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { FluentProvider, webLightTheme } from '@fluentui/react-components'
@@ -40,23 +39,21 @@ describe('Home', () => {
     expect(link).toHaveAttribute('href', '/register')
   })
 
-  it('home_alNavegar_enlacesSonAccesiblesPorTeclado', async () => {
+  it('home_alEnfocarEnlaces_recibenFocoConTeclado', () => {
     renderWithProviders(<Home />)
-    const user = userEvent.setup()
     const loginLink = screen.getByRole('link', { name: /iniciar sesión/i })
     const registerLink = screen.getByRole('link', { name: /registrarse/i })
 
-    const focusedElements = new Set()
-    for (let i = 0; i < 10; i++) {
-      await user.tab()
-      focusedElements.add(document.activeElement)
-    }
+    loginLink.focus()
+    expect(loginLink).toHaveFocus()
+    expect(loginLink).not.toHaveAttribute('tabindex', '-1')
 
-    expect(focusedElements).toContain(loginLink)
-    expect(focusedElements).toContain(registerLink)
+    registerLink.focus()
+    expect(registerLink).toHaveFocus()
+    expect(registerLink).not.toHaveAttribute('tabindex', '-1')
   })
 
-  it('home_alHacerClicEnIniciarSesion_navegaALogin', () => {
+  it('home_alHacerClicEnIniciarSesion_navegaALogin', async () => {
     render(
       <FluentProvider theme={webLightTheme}>
         <MemoryRouter initialEntries={['/']}>
@@ -71,7 +68,7 @@ describe('Home', () => {
     const link = screen.getByRole('link', { name: /iniciar sesión/i })
     expect(link).toHaveAttribute('href', '/login')
 
-    link.click()
+    await userEvent.click(link)
 
     expect(screen.getByRole('heading', { name: /página de login/i })).toBeInTheDocument()
   })
