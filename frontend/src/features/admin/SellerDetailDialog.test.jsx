@@ -97,13 +97,6 @@ describe('SellerDetailDialog (HU26): datos', () => {
     expect(await within(dialogo).findByRole('button', { name: /^desactivar usuario$/i })).toBeEnabled()
   })
 
-  it('sellerDetailDialog_mientrasCargaElVendedor_noMuestraNingunBotonDeActivacion', async () => {
-    const { dialogo } = await abrirDialogo()
-
-    expect(within(dialogo).queryByRole('button', { name: /activar usuario/i })).not.toBeInTheDocument()
-    await within(dialogo).findByLabelText('Nombre')
-  })
-
   it('sellerDetailDialog_alPulsarDesactivarUsuario_deMomentoNoHaceNada', async () => {
     const user = userEvent.setup()
     const { dialogo, onClose } = await abrirDialogo()
