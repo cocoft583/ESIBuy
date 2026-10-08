@@ -13,12 +13,12 @@ import {
 import { Add20Regular, BoxMultiple24Regular, SearchInfo24Regular } from '@fluentui/react-icons'
 import EmptyState from '../components/EmptyState'
 import LinkButton from '../components/LinkButton'
+import ListFilters from '../components/ListFilters'
 import Pagination from '../components/Pagination'
-import ProductFilters from '../features/seller/ProductFilters'
 import ProductsTable from '../features/seller/ProductsTable'
-import { useCategories } from '../features/seller/useCategories'
-import { useDebouncedValue } from '../features/seller/useDebouncedValue'
 import { useSellerProducts } from '../features/seller/useSellerProducts'
+import { useCategories } from '../hooks/useCategories'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { PATHS } from '../routes/paths'
 
 const PAGE_SIZE = 10
@@ -106,10 +106,11 @@ export default function SellerProductsPage() {
       </div>
 
       {showFilters && (
-        <ProductFilters
+        <ListFilters
           search={search}
           category={category}
           categories={categories}
+          searchPlaceholder="Escribe el nombre de un producto"
           onSearchChange={changeSearch}
           onCategoryChange={changeCategory}
         />
