@@ -16,6 +16,8 @@ import ListFilters from '../components/ListFilters'
 import Pagination from '../components/Pagination'
 import { usePageStyles } from '../components/pageStyles'
 import SellerDetailDialog from '../features/admin/SellerDetailDialog'
+import SellerSortControls from '../features/admin/SellerSortControls'
+import SellerStatusFilter from '../features/admin/SellerStatusFilter'
 import SellersTable from '../features/admin/SellersTable'
 import { useApiQuery } from '../hooks/useApiQuery'
 import { useCategories } from '../hooks/useCategories'
@@ -27,17 +29,30 @@ const PAGE_SIZE = 10
 export default function AdminSellersPage() {
   const styles = usePageStyles()
   const [selectedSellerId, setSelectedSellerId] = useState(null)
+  const [status, setStatus] = useState('')
+  const [sort, setSort] = useState('status')
+  const [order, setOrder] = useState('asc')
   const categories = useCategories()
   const { search, category, page, debouncedSearch, filtersActive, setPage, changeSearch, changeCategory, clearFilters } =
     useListFilters()
   const fetcher = useCallback(
-    () => getAdminSellers({ search: debouncedSearch, category, page, size: PAGE_SIZE }),
-    [debouncedSearch, category, page],
+    () => getAdminSellers({ search: debouncedSearch, category, status, sort, order, page, size: PAGE_SIZE }),
+    [debouncedSearch, category, status, sort, order, page],
   )
   const { data, failed, refreshing, retry } = useApiQuery(fetcher)
 
-  const hasNoSellers = data?.totalItems === 0 && !debouncedSearch && !category
-  const showFilters = filtersActive || (data?.totalItems ?? 0) > 0
+  const hasNoSellers = data?.totalItems === 0 && !debouncedSearch && !category && !status
+  const showFilters = filtersActive || Boolean(status) || (data?.totalItems ?? 0) > 0
+
+  const changeAndGoToFirstPage = (setter) => (value) => {
+    setter(value)
+    setPage(1)
+  }
+
+  const clearAllFilters = () => {
+    clearFilters()
+    setStatus('')
+  }
 
   return (
     <main className={styles.page}>
@@ -61,7 +76,15 @@ export default function AdminSellersPage() {
           searchPlaceholder="Nombre, nombre comercial o correo"
           onSearchChange={changeSearch}
           onCategoryChange={changeCategory}
-        />
+        >
+          <SellerStatusFilter status={status} onChange={changeAndGoToFirstPage(setStatus)} />
+          <SellerSortControls
+            sort={sort}
+            order={order}
+            onSortChange={changeAndGoToFirstPage(setSort)}
+            onOrderChange={changeAndGoToFirstPage(setOrder)}
+          />
+        </ListFilters>
       )}
 
       {failed && (
@@ -89,7 +112,7 @@ export default function AdminSellersPage() {
           title="No hay vendedores que coincidan con los filtros"
           description="Prueba con otro nombre u otra categoría."
         >
-          <Button onClick={clearFilters}>Limpiar filtros</Button>
+          <Button onClick={clearAllFilters}>Limpiar filtros</Button>
         </EmptyState>
       )}
 

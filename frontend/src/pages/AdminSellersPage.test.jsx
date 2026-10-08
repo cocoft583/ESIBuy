@@ -220,7 +220,8 @@ describe('AdminSellersPage (HU26): filtro por estado', () => {
 
     await user.selectOptions(await screen.findByLabelText('Estado'), 'Activo')
 
-    await waitFor(() => expect(screen.getByText(/mostrando 1–10 de 10 vendedores/i)).toBeInTheDocument())
+    await esperarFilas(10)
+    expect(screen.queryByRole('navigation', { name: /paginación/i })).not.toBeInTheDocument()
     filasDeDatos().forEach((fila) => expect(within(fila).getByText('Activo')).toBeInTheDocument())
   })
 

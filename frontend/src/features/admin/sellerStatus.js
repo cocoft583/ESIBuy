@@ -11,6 +11,9 @@ const ORDER_STATUS = new Map([
   ['CANCELADO', { label: 'Cancelado', color: 'danger' }],
 ])
 
+export const getSellerStatusOptions = () =>
+  [...SELLER_STATUS].map(([value, { label }]) => ({ value, label }))
+
 const UNKNOWN_STATUS = { label: 'Desconocido', color: 'subtle' }
 
 export const getSellerStatus = (status) => SELLER_STATUS.get(status) ?? UNKNOWN_STATUS

@@ -17,7 +17,7 @@ import {
   makeStyles,
   tokens,
 } from '@fluentui/react-components'
-import { Delete20Regular, Dismiss24Regular, Edit20Regular } from '@fluentui/react-icons'
+import { Dismiss24Regular, PersonProhibited20Regular } from '@fluentui/react-icons'
 import { getAdminSeller, getAdminSellerOrders, getAdminSellerProducts } from '../../api/adminSellers'
 import { useApiQuery } from '../../hooks/useApiQuery'
 import ProductsTable from '../seller/ProductsTable'
@@ -118,12 +118,7 @@ export default function SellerDetailDialog({ sellerId, onClose }) {
             )}
           </DialogContent>
           <DialogActions>
-            <Button disabled icon={<Edit20Regular />}>
-              Editar vendedor
-            </Button>
-            <Button disabled icon={<Delete20Regular />}>
-              Eliminar vendedor
-            </Button>
+            <Button icon={<PersonProhibited20Regular />}>Desactivar usuario</Button>
           </DialogActions>
         </DialogBody>
       </DialogSurface>

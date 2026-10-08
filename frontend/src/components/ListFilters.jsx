@@ -23,6 +23,7 @@ export default function ListFilters({
   searchPlaceholder,
   onSearchChange,
   onCategoryChange,
+  children,
 }) {
   const styles = useStyles()
 
@@ -45,6 +46,7 @@ export default function ListFilters({
           ))}
         </Select>
       </Field>
+      {children}
     </div>
   )
 }
