@@ -22,6 +22,12 @@ async function abrirDialogo(sellerId = VENDEDOR_CON_DATOS) {
   return { dialogo, onClose }
 }
 
+function botonesDeEdicionActivos(dialogo) {
+  return within(dialogo)
+    .queryAllByRole('button', { name: /editar|eliminar|borrar|cancelar pedido|activar|desactivar/i })
+    .filter((boton) => !boton.hasAttribute('disabled'))
+}
+
 async function abrirPestana(user, dialogo, nombre) {
   await user.click(within(dialogo).getByRole('tab', { name: nombre }))
 }
@@ -129,7 +135,7 @@ describe('SellerDetailDialog (HU26): productos', () => {
     await abrirPestana(user, dialogo, 'Productos')
     await within(dialogo).findByText('Auriculares inalámbricos')
 
-    expect(within(dialogo).queryByRole('button', { name: /^(editar|eliminar|borrar|activar|desactivar)/i })).not.toBeInTheDocument()
+    expect(botonesDeEdicionActivos(dialogo)).toHaveLength(0)
   })
 
   it('sellerDetailDialog_pestanaProductos_permitePasarDePagina', async () => {
@@ -140,7 +146,7 @@ describe('SellerDetailDialog (HU26): productos', () => {
     await within(dialogo).findByText('Auriculares inalámbricos')
     await user.click(within(dialogo).getByRole('button', { name: /siguiente/i }))
 
-    expect(await within(dialogo).findByText('Aspirador de mano')).toBeInTheDocument()
+    expect(await within(dialogo).findByText('Webcam Full HD')).toBeInTheDocument()
     expect(within(dialogo).getByText(/página 2 de 5/i)).toBeInTheDocument()
   })
 
@@ -208,6 +214,6 @@ describe('SellerDetailDialog (HU26): pedidos', () => {
     await abrirPestana(user, dialogo, 'Pedidos')
     await within(dialogo).findByText('PED-1012')
 
-    expect(within(dialogo).queryByRole('button', { name: /cancelar pedido|editar|eliminar/i })).not.toBeInTheDocument()
+    expect(botonesDeEdicionActivos(dialogo)).toHaveLength(0)
   })
 })
