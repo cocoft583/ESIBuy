@@ -6,7 +6,7 @@ import es.uclm.esibuy.backend.usuarios.application.port.out.HashContrasenaPort;
 import es.uclm.esibuy.backend.usuarios.application.port.out.UsuarioRepositoryPort;
 import es.uclm.esibuy.backend.usuarios.domain.exception.ContrasenaInvalidaException;
 import es.uclm.esibuy.backend.usuarios.domain.exception.CorreoYaRegistradoException;
-import es.uclm.esibuy.backend.usuarios.domain.model.Rol;
+import es.uclm.esibuy.backend.usuarios.domain.model.Email;
 import es.uclm.esibuy.backend.usuarios.domain.model.Usuario;
 
 
@@ -24,15 +24,15 @@ public class RegistroUsuarioService implements RegistroUsuarioUseCase {
     @Override
     public void registrar(RegistrarUsuarioCommand comando) {
 
-        if (comando.contrasena().length() < LONGITUD_MINIMA_CONTRASENA) {
-            throw new ContrasenaInvalidaException("La contraseña debe tener mínimo" + LONGITUD_MINIMA_CONTRASENA + " caracteres"); // REVISAR: Aquí deberia ser mensaje poco explicativo no?         
+        if (comando.contrasena() == null || comando.contrasena().length() < LONGITUD_MINIMA_CONTRASENA) {
+            throw new ContrasenaInvalidaException("La contraseña debe tener mínimo " + LONGITUD_MINIMA_CONTRASENA + " caracteres"); // REVISAR: Aquí deberia ser mensaje poco explicativo no?         
         }
         if (usuarioRepository.existePorCorreo(comando.correo())) {
             throw new CorreoYaRegistradoException("El correo ya está registrado");
         }
 
         String contrasenaHash = hashContrasena.hashear(comando.contrasena());   
-        Usuario usuario = new Usuario(comando.correo(), contrasenaHash, Rol.CLIENTE); // Comando → Usuario: el comando es un DTO de entrada, el usuario es un objeto de dominio
+        Usuario usuario = Usuario.nuevoCliente(new Email(comando.correo()), contrasenaHash); // Comando → Usuario: el comando es un DTO de entrada, el usuario es un objeto de dominio
         usuarioRepository.guardar(usuario);
     }
 
