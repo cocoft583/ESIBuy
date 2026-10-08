@@ -23,7 +23,7 @@ Desde el panel de control, la tarjeta **Vendedores** lleva a `/admin/sellers`: u
 | Criterio de aceptación | Cómo se cumple |
 |---|---|
 | El administrador entra en la sección de un vendedor y revisa sus productos, precios o pedidos | Lupa de cada fila, diálogo con las pestañas Datos, Productos y Pedidos. |
-| Se ve toda la información pero se bloquea cualquier edición o borrado | Los campos son de solo lectura y se ven más oscuros, hay un aviso de "Modo solo lectura", no existen botones de editar ni eliminar y las tablas no tienen ninguna acción. La única acción es **Desactivar usuario**, que aún no hace nada (HU23). |
+| Se ve toda la información pero se bloquea cualquier edición o borrado | Los campos son de solo lectura y se ven más oscuros, hay un aviso de "Modo solo lectura", no existen botones de editar ni eliminar y las tablas no tienen ninguna acción. La única acción es **Desactivar usuario** (o **Activar usuario** si el vendedor está desactivado), que aún no hace nada (HU23 y HU24). |
 
 ### Filtros y ordenación del listado
 
@@ -112,7 +112,7 @@ Todas las rutas son relativas a `frontend/src/`.
 | Archivo | Qué hace |
 |---|---|
 | `SellersTable.jsx` | Tabla de vendedores: nombre, nombre comercial, correo, categoría, estado y el botón de la lupa. La lupa tiene el nombre accesible "Ver información de *nombre comercial*". No tiene ninguna acción de edición o borrado. |
-| `SellerDetailDialog.jsx` | Diálogo modal con el aviso de solo lectura, las pestañas y el botón **Desactivar usuario** (habilitado, pero sin acción por ahora). Se cierra con la X, con Escape o pulsando fuera. Al abrirse pide los datos del vendedor; las pestañas Productos y Pedidos piden los suyos solo cuando se abren. |
+| `SellerDetailDialog.jsx` | Diálogo modal con el aviso de solo lectura, las pestañas y un único botón de activación, habilitado pero sin acción por ahora: **Activar usuario** si el vendedor está desactivado y **Desactivar usuario** en cualquier otro estado. Solo aparece cuando los datos del vendedor ya han cargado. Se cierra con la X, con Escape o pulsando fuera. Al abrirse pide los datos del vendedor; las pestañas Productos y Pedidos piden los suyos solo cuando se abren. |
 | `SellerDataForm.jsx` | Rejilla de campos de la pestaña Datos. Son `Input` de Fluent con `readOnly` y la apariencia `filled-darker`, que los pinta con un fondo más oscuro para indicar que no se pueden modificar. Se usa `readOnly` y no `disabled` para que el texto se pueda seleccionar y copiar y lo lean los lectores de pantalla. |
 | `PagedList.jsx` | Lista paginada genérica para las pestañas: pide una página, gestiona carga, error con **Reintentar**, mensaje vacío y paginación. Las pestañas solo le indican qué pedir y cómo pintar las filas. |
 | `SellerStatusFilter.jsx` | Desplegable de filtro por estado. Las opciones salen de `sellerStatus.js`. |
@@ -211,7 +211,7 @@ Pruebas manuales sugeridas:
 4. Buscar `zzzz`: "sin coincidencias" y **Limpiar filtros**.
 5. Pulsar la lupa de `TecnoVera`: se abre el diálogo y el listado sigue detrás, con la misma dirección en la barra.
 6. Intentar escribir en los campos de la pestaña Datos: no cambian. Comprobar que el fondo es más oscuro que el del resto del diálogo.
-7. Comprobar que no hay botones de editar ni eliminar, y que **Desactivar usuario** se puede pulsar pero no hace nada.
+7. Comprobar que no hay botones de editar ni eliminar, y que **Desactivar usuario** se puede pulsar pero no hace nada. Abrir `Cocina Pablo` (desactivado): el botón pasa a ser **Activar usuario**.
 8. En Productos y Pedidos, pasar de página con **Siguiente**.
    Ordenar por **Nombre**, **Categoría** y **Estado**, e invertir la dirección con el botón **Ascendente / Descendente**. Comprobar que al ordenar vuelve a la página 1 y que **Limpiar filtros** mantiene el orden.
 9. Cerrar con la X, con Escape y pulsando fuera del diálogo.
@@ -220,7 +220,7 @@ Pruebas manuales sugeridas:
 ### Tests automáticos
 
 ```bash
-npx vitest run     # 136 tests (54 son de esta HU)
+npx vitest run     # 139 tests (57 son de esta HU)
 npm run lint
 npm run build
 ```
@@ -228,7 +228,7 @@ npm run build
 | Archivo | Qué cubre |
 |---|---|
 | `pages/AdminSellersPage.test.jsx` | 35 tests: acceso y roles, listado, estados, filtros (nombre, categoría y estado), ordenación, paginación, apertura y cierre del diálogo y rechazo del servidor a quien no es administrador. |
-| `features/admin/SellerDetailDialog.test.jsx` | 19 tests: datos de solo lectura, aviso, ausencia de botones de editar y eliminar, botón Desactivar usuario sin efecto, cierre, errores, y las pestañas Productos y Pedidos (datos, paginación, vacío, sin acciones de edición). |
+| `features/admin/SellerDetailDialog.test.jsx` | 22 tests: datos de solo lectura, aviso, ausencia de botones de editar y eliminar, botones Desactivar y Activar usuario según el estado y sin efecto, cierre, errores, y las pestañas Productos y Pedidos (datos, paginación, vacío, sin acciones de edición). |
 | `pages/AdminPage.test.jsx` | Un test ajustado: ahora comprueba que **Clientes** (aún sin acción) no navega, y el nuevo test de **Vendedores** está en `AdminSellersPage.test.jsx`. |
 
 Los 82 tests anteriores siguen pasando, lo que valida la reorganización de componentes compartidos (sección 6).
@@ -240,7 +240,7 @@ Los 82 tests anteriores siguen pasando, lo que valida la reorganización de comp
 - **No se ha añadido ninguna librería nueva.** Se usan componentes de Fluent UI que ya estaban disponibles (`Dialog`, `TabList`/`Tab`, `Input`, `Field`, `Table`, `Badge`, `MessageBar`) y los iconos de `@fluentui/react-icons`.
 - **Diálogo modal y no página:** el administrador no pierde el listado, la búsqueda ni la página en la que estaba al cerrar. El diálogo no cambia la dirección del navegador, así que no se puede enlazar ni recuperar al recargar. Si hiciera falta, habría que pasar el vendedor seleccionado a la URL.
 - **Solo lectura con `readOnly` y no `disabled`:** un campo deshabilitado no se puede seleccionar ni leer bien con teclado. La apariencia `filled-darker` de Fluent da el fondo más oscuro pedido sin crear colores nuevos.
-- **Sin botones de editar ni eliminar:** el criterio "bloquea cualquier opción de edición o borrado" se cumple no ofreciéndolas. La única acción es **Desactivar usuario** (HU23), visible y habilitada pero sin efecto hasta que se implemente esa historia. Para respetar "solo lectura", cuando se implemente deberá pedir confirmación y llamar a un endpoint propio de desactivación.
+- **Sin botones de editar ni eliminar:** el criterio "bloquea cualquier opción de edición o borrado" se cumple no ofreciéndolas. La única acción es **Desactivar usuario** (HU23) o, si el vendedor ya está desactivado, **Activar usuario** (HU24); visible y habilitada pero sin efecto hasta que se implementen esas historias. Un vendedor pendiente muestra **Desactivar usuario**; la HU24 también permite activar cuentas pendientes, así que habrá que decidir si ese estado debe ofrecer **Activar usuario**. Cuando se implemente, deberá pedir confirmación y llamar a un endpoint propio.
 - **Ordenación en el servidor y dirección conmutable:** el administrador elige el criterio y el sentido. "Pendientes primero" es el orden por defecto del estado y se puede invertir. No se ha hecho configurable el orden entre los tres estados de forma individual; si se quiere, habría que cambiar el contrato.
 - **Pestañas con carga bajo demanda:** Productos y Pedidos solo piden datos al abrirse, para no cargar el diálogo con tres peticiones.
 - **Reutilización:** se extrajeron `useApiQuery`, `useListFilters`, `ListFilters`, `tableStyles`, `pageStyles` y `format` para no duplicar el código del listado de productos (HU32), que se reescribió sobre ellos. Esto se hizo para cumplir el límite de duplicación de SonarQube.
@@ -260,8 +260,8 @@ Los 82 tests anteriores siguen pasando, lo que valida la reorganización de comp
 Este documento y el trabajo técnico que describe se hicieron con ayuda de un asistente de IA generativa, como exige el enunciado.
 
 - **Herramienta:** Claude (modelo de Anthropic), mediante Claude Code.
-- **Qué generó la IA:** el listado de vendedores, el diálogo de información, sus pestañas, los hooks y componentes compartidos, los mocks, los tests y este documento. Las decisiones de producto las tomó el equipo: la tabla paginada con búsqueda y filtro por categoría y por estado, la ordenación (por estado con los pendientes primero, por categoría y por nombre, modificable), la lupa en cada fila, que la información se abra por encima del listado y no en una pestaña, los campos más oscuros por ser de solo lectura y el botón Desactivar usuario sin acción.
-- **Cómo se comprobó:** se ejecutaron los **136 tests (todos en verde)**, ESLint sin errores y un build de producción correcto. Los tests se escribieron antes que la implementación.
+- **Qué generó la IA:** el listado de vendedores, el diálogo de información, sus pestañas, los hooks y componentes compartidos, los mocks, los tests y este documento. Las decisiones de producto las tomó el equipo: la tabla paginada con búsqueda y filtro por categoría y por estado, la ordenación (por estado con los pendientes primero, por categoría y por nombre, modificable), la lupa en cada fila, que la información se abra por encima del listado y no en una pestaña, los campos más oscuros por ser de solo lectura y el botón Desactivar usuario (Activar usuario si está desactivado) sin acción.
+- **Cómo se comprobó:** se ejecutaron los **139 tests (todos en verde)**, ESLint sin errores y un build de producción correcto. Los tests se escribieron antes que la implementación.
 - **Qué NO se comprobó:** la pantalla en un navegador real ni su aspecto visual (por ejemplo, el contraste de los campos de solo lectura), ni el flujo contra un backend real. El contrato de la sección 4 debe acordarse con el backend.
 - **Cómo guió el proceso:** el asistente siguió el flujo de ramas y commits del proyecto (reorganización, mocks, tests, implementación y documentación en commits separados) y el sistema de diseño de `DESIGN.md`.
 - **Revisión humana:** el código fue revisado, ejecutado y validado por el equipo antes de su integración. Revisado por: Ricardo.
