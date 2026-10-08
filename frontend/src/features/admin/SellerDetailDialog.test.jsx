@@ -22,10 +22,8 @@ async function abrirDialogo(sellerId = VENDEDOR_CON_DATOS) {
   return { dialogo, onClose }
 }
 
-function botonesDeEdicionActivos(dialogo) {
-  return within(dialogo)
-    .queryAllByRole('button', { name: /editar|eliminar|borrar|cancelar pedido|activar|desactivar/i })
-    .filter((boton) => !boton.hasAttribute('disabled'))
+function botonesDeEdicion(dialogo) {
+  return within(dialogo).queryAllByRole('button', { name: /editar|eliminar|borrar|cancelar pedido/i })
 }
 
 async function abrirPestana(user, dialogo, nombre) {
@@ -71,11 +69,28 @@ describe('SellerDetailDialog (HU26): datos', () => {
     expect(within(dialogo).getByText(/modo solo lectura/i)).toBeInTheDocument()
   })
 
-  it('sellerDetailDialog_lasAccionesDeEdicionYBorrado_estanDeshabilitadas', async () => {
+  it('sellerDetailDialog_noOfreceBotonesDeEditarNiEliminarVendedor', async () => {
     const { dialogo } = await abrirDialogo()
 
-    expect(within(dialogo).getByRole('button', { name: /editar vendedor/i })).toBeDisabled()
-    expect(within(dialogo).getByRole('button', { name: /eliminar vendedor/i })).toBeDisabled()
+    expect(within(dialogo).queryByRole('button', { name: /editar|eliminar|borrar/i })).not.toBeInTheDocument()
+  })
+
+  it('sellerDetailDialog_muestraElBotonDesactivarUsuarioHabilitado', async () => {
+    const { dialogo } = await abrirDialogo()
+
+    expect(within(dialogo).getByRole('button', { name: /^desactivar usuario$/i })).toBeEnabled()
+  })
+
+  it('sellerDetailDialog_alPulsarDesactivarUsuario_deMomentoNoHaceNada', async () => {
+    const user = userEvent.setup()
+    const { dialogo, onClose } = await abrirDialogo()
+    const estado = await within(dialogo).findByLabelText('Estado')
+
+    await user.click(within(dialogo).getByRole('button', { name: /^desactivar usuario$/i }))
+
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByRole('dialog', { name: /información del vendedor/i })).toBeInTheDocument()
+    expect(estado).toHaveValue('Activo')
   })
 
   it('sellerDetailDialog_alPulsarCerrar_avisaDelCierre', async () => {
@@ -135,7 +150,7 @@ describe('SellerDetailDialog (HU26): productos', () => {
     await abrirPestana(user, dialogo, 'Productos')
     await within(dialogo).findByText('Auriculares inalámbricos')
 
-    expect(botonesDeEdicionActivos(dialogo)).toHaveLength(0)
+    expect(botonesDeEdicion(dialogo)).toHaveLength(0)
   })
 
   it('sellerDetailDialog_pestanaProductos_permitePasarDePagina', async () => {
@@ -214,6 +229,6 @@ describe('SellerDetailDialog (HU26): pedidos', () => {
     await abrirPestana(user, dialogo, 'Pedidos')
     await within(dialogo).findByText('PED-1012')
 
-    expect(botonesDeEdicionActivos(dialogo)).toHaveLength(0)
+    expect(botonesDeEdicion(dialogo)).toHaveLength(0)
   })
 })

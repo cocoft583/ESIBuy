@@ -61,25 +61,31 @@ describe('AdminSellersPage (HU26): listado', () => {
     await abrirListado()
 
     await esperarFilas(10)
-    expect(screen.getByText('TecnoVera')).toBeInTheDocument()
+    expect(screen.getByText('Casa Vicente')).toBeInTheDocument()
     expect(screen.getByText(/mostrando 1–10 de 14 vendedores/i)).toBeInTheDocument()
   })
 
   it('adminSellersPage_muestraNombreCorreoCategoriaYEstadoDeCadaVendedor', async () => {
     await abrirListado()
 
-    const fila = (await screen.findByText('TecnoVera')).closest('tr')
-    expect(within(fila).getByText('Vera Vendedora')).toBeInTheDocument()
-    expect(within(fila).getByText('vendedor@esibuy.test')).toBeInTheDocument()
-    expect(within(fila).getByText('Tecnología')).toBeInTheDocument()
+    const fila = (await screen.findByText('Casa Vicente')).closest('tr')
+    expect(within(fila).getByText('Vicente Vacío')).toBeInTheDocument()
+    expect(within(fila).getByText('vendedor-vacio@esibuy.test')).toBeInTheDocument()
+    expect(within(fila).getByText('Hogar')).toBeInTheDocument()
     expect(within(fila).getByText('Activo')).toBeInTheDocument()
   })
 
   it('adminSellersPage_distingueLosEstadosPendienteYDesactivado', async () => {
+    const user = userEvent.setup()
     await abrirListado()
 
-    expect(within((await screen.findByText('Hogar Hugo')).closest('tr')).getByText('Pendiente')).toBeInTheDocument()
+    await user.selectOptions(await screen.findByLabelText('Estado'), 'Desactivado')
+    await esperarFilas(2)
     expect(within(screen.getByText('Cocina Pablo').closest('tr')).getByText('Desactivado')).toBeInTheDocument()
+
+    await user.selectOptions(screen.getByLabelText('Estado'), 'Pendiente')
+    await esperarFilas(2)
+    expect(within(screen.getByText('Hogar Hugo').closest('tr')).getByText('Pendiente')).toBeInTheDocument()
   })
 
   it('adminSellersPage_cadaFilaTieneUnBotonConLupaParaVerSuInformacion', async () => {
@@ -87,7 +93,7 @@ describe('AdminSellersPage (HU26): listado', () => {
 
     await esperarFilas(10)
     expect(screen.getAllByRole('button', { name: /ver información de/i })).toHaveLength(10)
-    expect(screen.getByRole('button', { name: /ver información de tecnovera/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /ver información de casa vicente/i })).toBeInTheDocument()
   })
 
   it('adminSellersPage_noOfreceAccionesDeEdicionNiBorradoEnLasFilas', async () => {
@@ -195,13 +201,139 @@ describe('AdminSellersPage (HU26): filtros', () => {
     const user = userEvent.setup()
     await abrirListado()
 
-    await user.type(await screen.findByLabelText(/buscar por nombre/i), 'zzzz')
+    await user.selectOptions(await screen.findByLabelText('Estado'), 'Desactivado')
+    await user.type(screen.getByLabelText(/buscar por nombre/i), 'zzzz')
     expect(await screen.findByText(/no hay vendedores que coincidan/i)).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: /todavía no hay vendedores/i })).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /limpiar filtros/i }))
 
     await esperarFilas(10)
     expect(screen.getByLabelText(/buscar por nombre/i)).toHaveValue('')
+    expect(screen.getByLabelText('Estado')).toHaveValue('')
+  })
+})
+
+describe('AdminSellersPage (HU26): filtro por estado', () => {
+  it('adminSellersPage_alFiltrarPorEstadoActivo_muestraSoloLosActivos', async () => {
+    const user = userEvent.setup()
+    await abrirListado()
+
+    await user.selectOptions(await screen.findByLabelText('Estado'), 'Activo')
+
+    await waitFor(() => expect(screen.getByText(/mostrando 1–10 de 10 vendedores/i)).toBeInTheDocument())
+    filasDeDatos().forEach((fila) => expect(within(fila).getByText('Activo')).toBeInTheDocument())
+  })
+
+  it('adminSellersPage_alFiltrarPorEstadoPendiente_muestraSoloLosPendientes', async () => {
+    const user = userEvent.setup()
+    await abrirListado()
+
+    await user.selectOptions(await screen.findByLabelText('Estado'), 'Pendiente')
+
+    await esperarFilas(2)
+    filasDeDatos().forEach((fila) => expect(within(fila).getByText('Pendiente')).toBeInTheDocument())
+  })
+
+  it('adminSellersPage_combinaEstadoYCategoria', async () => {
+    const user = userEvent.setup()
+    await abrirListado()
+
+    await user.selectOptions(await screen.findByLabelText('Estado'), 'Pendiente')
+    await user.selectOptions(screen.getByLabelText(/categoría/i), 'Hogar')
+
+    await esperarFilas(1)
+    expect(screen.getByText('Hogar Hugo')).toBeInTheDocument()
+  })
+
+  it('adminSellersPage_elFiltroDeEstado_ofreceTodosLosEstados', async () => {
+    await abrirListado()
+
+    const opciones = within(await screen.findByLabelText('Estado')).getAllByRole('option')
+    expect(opciones.map((opcion) => opcion.textContent)).toEqual([
+      'Todos los estados',
+      'Activo',
+      'Pendiente',
+      'Desactivado',
+    ])
+  })
+})
+
+describe('AdminSellersPage (HU26): ordenación', () => {
+  const primeraFila = () => filasDeDatos()[0]
+
+  it('adminSellersPage_porDefecto_ordenaPorEstadoConLosPendientesPrimero', async () => {
+    await abrirListado()
+
+    await esperarFilas(10)
+    expect(within(filasDeDatos()[0]).getByText('Pendiente')).toBeInTheDocument()
+    expect(within(filasDeDatos()[1]).getByText('Pendiente')).toBeInTheDocument()
+    expect(within(filasDeDatos()[2]).getByText('Activo')).toBeInTheDocument()
+    expect(screen.getByLabelText('Ordenar por')).toHaveValue('status')
+  })
+
+  it('adminSellersPage_alInvertirElOrdenDeEstado_losPendientesPasanAlFinal', async () => {
+    const user = userEvent.setup()
+    await abrirListado()
+    await esperarFilas(10)
+
+    await user.click(screen.getByRole('button', { name: /orden ascendente/i }))
+
+    expect(await screen.findByRole('button', { name: /orden descendente/i })).toBeInTheDocument()
+    await waitFor(() => expect(within(primeraFila()).getByText('Desactivado')).toBeInTheDocument())
+  })
+
+  it('adminSellersPage_alOrdenarPorNombre_ordenaAlfabeticamenteSegunElNombre', async () => {
+    const user = userEvent.setup()
+    await abrirListado()
+
+    await user.selectOptions(await screen.findByLabelText('Ordenar por'), 'Nombre')
+
+    await waitFor(() => expect(within(primeraFila()).getByText('Adrián Bravo Cano')).toBeInTheDocument())
+  })
+
+  it('adminSellersPage_alOrdenarPorNombreDescendente_empiezaPorLaUltimaLetra', async () => {
+    const user = userEvent.setup()
+    await abrirListado()
+
+    await user.selectOptions(await screen.findByLabelText('Ordenar por'), 'Nombre')
+    await user.click(screen.getByRole('button', { name: /orden ascendente/i }))
+
+    await waitFor(() => expect(within(primeraFila()).getByText('Vicente Vacío')).toBeInTheDocument())
+  })
+
+  it('adminSellersPage_alOrdenarPorCategoria_agrupaPorCategoria', async () => {
+    const user = userEvent.setup()
+    await abrirListado()
+
+    await user.selectOptions(await screen.findByLabelText('Ordenar por'), 'Categoría')
+    await waitFor(() => expect(within(primeraFila()).getByText('Hogar')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: /orden ascendente/i }))
+    await waitFor(() => expect(within(primeraFila()).getByText('Tecnología')).toBeInTheDocument())
+  })
+
+  it('adminSellersPage_alCambiarElOrdenDesdeOtraPagina_vuelveALaPrimera', async () => {
+    const user = userEvent.setup()
+    await abrirListado()
+    await esperarFilas(10)
+
+    await user.click(screen.getByRole('button', { name: /siguiente/i }))
+    await screen.findByText(/página 2 de 2/i)
+    await user.selectOptions(screen.getByLabelText('Ordenar por'), 'Nombre')
+
+    await waitFor(() => expect(screen.getByText(/página 1 de 2/i)).toBeInTheDocument())
+  })
+
+  it('adminSellersPage_laOrdenacion_seMantieneAlLimpiarLosFiltros', async () => {
+    const user = userEvent.setup()
+    await abrirListado()
+
+    await user.selectOptions(await screen.findByLabelText('Ordenar por'), 'Nombre')
+    await user.type(screen.getByLabelText(/buscar por nombre/i), 'zzzz')
+    await user.click(await screen.findByRole('button', { name: /limpiar filtros/i }))
+
+    await esperarFilas(10)
+    expect(screen.getByLabelText('Ordenar por')).toHaveValue('name')
   })
 })
 
@@ -214,7 +346,7 @@ describe('AdminSellersPage (HU26): paginación', () => {
     await user.click(screen.getByRole('button', { name: /siguiente/i }))
 
     expect(await screen.findByText('Bravo Audio')).toBeInTheDocument()
-    expect(screen.queryByText('TecnoVera')).not.toBeInTheDocument()
+    expect(screen.queryByText('Casa Vicente')).not.toBeInTheDocument()
     expect(screen.getByText(/página 2 de 2/i)).toBeInTheDocument()
     await esperarFilas(4)
   })
@@ -237,10 +369,10 @@ describe('AdminSellersPage (HU26): información del vendedor', () => {
     const user = userEvent.setup()
     await abrirListado()
 
-    await user.click(await screen.findByRole('button', { name: /ver información de tecnovera/i }))
+    await user.click(await screen.findByRole('button', { name: /ver información de casa vicente/i }))
 
     const dialogo = await screen.findByRole('dialog', { name: /información del vendedor/i })
-    expect(await within(dialogo).findByLabelText('Nombre comercial')).toHaveValue('TecnoVera')
+    expect(await within(dialogo).findByLabelText('Nombre comercial')).toHaveValue('Casa Vicente')
     expect(screen.getByTestId('ruta-actual')).toHaveTextContent(/^\/admin\/sellers$/)
     expect(screen.getByRole('table', { hidden: true })).toBeInTheDocument()
   })
@@ -248,7 +380,7 @@ describe('AdminSellersPage (HU26): información del vendedor', () => {
   it('adminSellersPage_alCerrarLaInformacion_vuelveAlListadoSinCambiarDeRuta', async () => {
     const user = userEvent.setup()
     await abrirListado()
-    await user.click(await screen.findByRole('button', { name: /ver información de tecnovera/i }))
+    await user.click(await screen.findByRole('button', { name: /ver información de casa vicente/i }))
     const dialogo = await screen.findByRole('dialog', { name: /información del vendedor/i })
 
     await user.click(within(dialogo).getByRole('button', { name: /cerrar/i }))
@@ -261,10 +393,10 @@ describe('AdminSellersPage (HU26): información del vendedor', () => {
   it('adminSellersPage_alAbrirOtroVendedor_muestraSusDatos', async () => {
     const user = userEvent.setup()
     await abrirListado()
-    await user.click(await screen.findByRole('button', { name: /ver información de casa vicente/i }))
+    await user.click(await screen.findByRole('button', { name: /ver información de carmen electrodomésticos/i }))
     const dialogo = await screen.findByRole('dialog', { name: /información del vendedor/i })
 
-    expect(await within(dialogo).findByLabelText('Nombre comercial')).toHaveValue('Casa Vicente')
+    expect(await within(dialogo).findByLabelText('Nombre comercial')).toHaveValue('Carmen Electrodomésticos')
     expect(within(dialogo).getByLabelText('Categoría principal')).toHaveValue('Hogar')
   })
 })
