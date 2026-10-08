@@ -9,6 +9,8 @@ import SellerDetailDialog from './SellerDetailDialog'
 
 const VENDEDOR_CON_DATOS = 'u-2'
 const VENDEDOR_SIN_NADA = 'u-5'
+const VENDEDOR_DESACTIVADO = 's-07'
+const VENDEDOR_PENDIENTE = 's-05'
 
 async function abrirDialogo(sellerId = VENDEDOR_CON_DATOS) {
   await abrirSesionPorApi('admin@esibuy.test')
@@ -75,10 +77,31 @@ describe('SellerDetailDialog (HU26): datos', () => {
     expect(within(dialogo).queryByRole('button', { name: /editar|eliminar|borrar/i })).not.toBeInTheDocument()
   })
 
-  it('sellerDetailDialog_muestraElBotonDesactivarUsuarioHabilitado', async () => {
+  it('sellerDetailDialog_conVendedorActivo_muestraElBotonDesactivarUsuarioHabilitado', async () => {
     const { dialogo } = await abrirDialogo()
 
-    expect(within(dialogo).getByRole('button', { name: /^desactivar usuario$/i })).toBeEnabled()
+    expect(await within(dialogo).findByRole('button', { name: /^desactivar usuario$/i })).toBeEnabled()
+    expect(within(dialogo).queryByRole('button', { name: /^activar usuario$/i })).not.toBeInTheDocument()
+  })
+
+  it('sellerDetailDialog_conVendedorDesactivado_muestraElBotonActivarUsuarioHabilitado', async () => {
+    const { dialogo } = await abrirDialogo(VENDEDOR_DESACTIVADO)
+
+    expect(await within(dialogo).findByRole('button', { name: /^activar usuario$/i })).toBeEnabled()
+    expect(within(dialogo).queryByRole('button', { name: /^desactivar usuario$/i })).not.toBeInTheDocument()
+  })
+
+  it('sellerDetailDialog_conVendedorPendiente_muestraElBotonDesactivarUsuario', async () => {
+    const { dialogo } = await abrirDialogo(VENDEDOR_PENDIENTE)
+
+    expect(await within(dialogo).findByRole('button', { name: /^desactivar usuario$/i })).toBeEnabled()
+  })
+
+  it('sellerDetailDialog_mientrasCargaElVendedor_noMuestraNingunBotonDeActivacion', async () => {
+    const { dialogo } = await abrirDialogo()
+
+    expect(within(dialogo).queryByRole('button', { name: /activar usuario/i })).not.toBeInTheDocument()
+    await within(dialogo).findByLabelText('Nombre')
   })
 
   it('sellerDetailDialog_alPulsarDesactivarUsuario_deMomentoNoHaceNada', async () => {
@@ -86,11 +109,23 @@ describe('SellerDetailDialog (HU26): datos', () => {
     const { dialogo, onClose } = await abrirDialogo()
     const estado = await within(dialogo).findByLabelText('Estado')
 
-    await user.click(within(dialogo).getByRole('button', { name: /^desactivar usuario$/i }))
+    await user.click(await within(dialogo).findByRole('button', { name: /^desactivar usuario$/i }))
 
     expect(onClose).not.toHaveBeenCalled()
     expect(screen.getByRole('dialog', { name: /información del vendedor/i })).toBeInTheDocument()
     expect(estado).toHaveValue('Activo')
+  })
+
+  it('sellerDetailDialog_alPulsarActivarUsuario_deMomentoNoHaceNada', async () => {
+    const user = userEvent.setup()
+    const { dialogo, onClose } = await abrirDialogo(VENDEDOR_DESACTIVADO)
+    const estado = await within(dialogo).findByLabelText('Estado')
+
+    await user.click(await within(dialogo).findByRole('button', { name: /^activar usuario$/i }))
+
+    expect(onClose).not.toHaveBeenCalled()
+    expect(estado).toHaveValue('Desactivado')
+    expect(within(dialogo).getByRole('button', { name: /^activar usuario$/i })).toBeInTheDocument()
   })
 
   it('sellerDetailDialog_alPulsarCerrar_avisaDelCierre', async () => {
