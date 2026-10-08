@@ -17,7 +17,7 @@ El vendedor autenticado ve en `/seller/products` una tabla con **sus** productos
 | Criterio de aceptación | Cómo se cumple |
 |---|---|
 | Solo los productos del vendedor autenticado | El frontend **no envía ningún identificador de vendedor**: el backend lo deduce de la sesión (cookie). El mock lo reproduce y hay un test que lo comprueba. |
-| Buscar por nombre y filtrar por categoría | `ProductFilters`: búsqueda con retardo de 300 ms (sin botón) y desplegable de categorías. Se pueden combinar. |
+| Buscar por nombre y filtrar por categoría | `ListFilters`: búsqueda con retardo de 300 ms (sin botón) y desplegable de categorías. Se pueden combinar. |
 | Listado paginado | `Pagination` + parámetros `page` y `size` en la petición. La paginación y el filtrado los hace el **servidor**. |
 | Estado vacío con acceso a "Añadir producto" | `EmptyState` con el enlace, solo cuando el vendedor no tiene ningún producto (sin filtros activos). |
 
