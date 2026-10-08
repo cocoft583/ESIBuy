@@ -1,6 +1,7 @@
 package es.uclm.esibuy.backend.usuarios.infrastructure.adapter.out.persistence;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.PersistenceCreator;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
@@ -10,7 +11,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * campos siguen el «Planteamiento inicial BBDD». El rol se guarda como texto para que el
  * documento no dependa del enum del dominio.
  *
- * <p>Cuando entre el Usuario de la T214 se añadirán nombre, apellidos, tipoCliente y bloqueado.
  */
 @Document(collection = "usuarios")
 public class UsuarioDocument {
@@ -20,11 +20,26 @@ public class UsuarioDocument {
     private final String email;
     private final String passwordHash;
     private final String rol;
+    private final String nombre;
+    private final String apellidos;
+    private final String tipoCliente;
+    private final boolean bloqueado;
 
     public UsuarioDocument(String email, String passwordHash, String rol) {
+        this(null, email, passwordHash, rol, null, null, null, false);
+    }
+
+    @PersistenceCreator //Se añadio para indicar a Spring Data qué constructor debe utilizar para leer los documentos.
+    public UsuarioDocument(String id, String email, String passwordHash, String rol,
+            String nombre, String apellidos, String tipoCliente, boolean bloqueado) {
+        this.id = id;
         this.email = email;
         this.passwordHash = passwordHash;
         this.rol = rol;
+        this.nombre = nombre;
+        this.apellidos = apellidos;
+        this.tipoCliente = tipoCliente;
+        this.bloqueado = bloqueado;
     }
 
     public String getId() {
@@ -41,5 +56,21 @@ public class UsuarioDocument {
 
     public String getRol() {
         return rol;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getApellidos() {
+        return apellidos;
+    }
+
+    public String getTipoCliente() {
+        return tipoCliente;
+    }
+
+    public boolean isBloqueado() {
+        return bloqueado;
     }
 }
