@@ -61,6 +61,24 @@ const PEDIDOS_POR_VENDEDOR = new Map([
 
 const TAMANO_PAGINA_PESTANA = 5
 
+// Orden ascendente de los estados: primero los pendientes de revisar.
+const ORDEN_ESTADOS = ['PENDIENTE', 'ACTIVO', 'DESACTIVADO']
+
+const COMPARADORES = new Map([
+  ['status', (a, b) => ORDEN_ESTADOS.indexOf(a.estado) - ORDEN_ESTADOS.indexOf(b.estado)],
+  ['category', (a, b) => CATEGORIAS.get(a.categoria).localeCompare(CATEGORIAS.get(b.categoria), 'es')],
+  ['name', (a, b) => `${a.nombre} ${a.apellidos}`.localeCompare(`${b.nombre} ${b.apellidos}`, 'es')],
+])
+
+function ordenar(vendedores, criterio, sentido) {
+  const comparar = COMPARADORES.get(criterio) ?? COMPARADORES.get('status')
+  const signo = sentido === 'desc' ? -1 : 1
+
+  return [...vendedores].sort(
+    (a, b) => signo * comparar(a, b) || a.nombreComercial.localeCompare(b.nombreComercial, 'es'),
+  )
+}
+
 const aVendedorResumen = ({ id, nombre, apellidos, nombreComercial, email, categoria, estado }) => ({
   id,
   nombre,
@@ -105,16 +123,19 @@ export const adminSellersHandlers = [
     const params = new URL(request.url).searchParams
     const busqueda = normalizar(params.get('search') ?? '')
     const categoria = params.get('category')
+    const estado = params.get('status')
 
     const coincidentes = VENDEDORES_DATOS.filter(
       (vendedor) =>
         normalizar(`${vendedor.nombre} ${vendedor.apellidos} ${vendedor.nombreComercial} ${vendedor.email}`).includes(
           busqueda,
         ) &&
-        (!categoria || vendedor.categoria === categoria),
+        (!categoria || vendedor.categoria === categoria) &&
+        (!estado || vendedor.estado === estado),
     )
+    const ordenados = ordenar(coincidentes, params.get('sort'), params.get('order'))
 
-    return HttpResponse.json(paginar(coincidentes, leerPagina(params), aVendedorResumen))
+    return HttpResponse.json(paginar(ordenados, leerPagina(params), aVendedorResumen))
   }),
 
   http.get('/api/admin/sellers/:id', ({ params }) =>
