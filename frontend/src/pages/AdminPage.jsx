@@ -9,6 +9,7 @@ const sections = [
     id: 'customers',
     icon: <People24Regular />,
     title: 'Clientes',
+    to: PATHS.ADMIN_CLIENTS,
     description: 'Consulta y gestiona las cuentas de los clientes de ESIBuy.',
   },
   {
@@ -22,6 +23,7 @@ const sections = [
     id: 'admins',
     icon: <PersonKey24Regular />,
     title: 'Administradores',
+    to: PATHS.ADMIN_ADMINS,
     description: 'Gestiona al equipo con acceso al panel de control.',
   },
 ]
