@@ -189,11 +189,11 @@ Rutas de las clases de test (bajo `backend/src/test/java/es/uclm/esibuy/backend/
 
 | Caso | Descripción | Tipo | Tests | Estado |
 |---|---|---|---|---|
-| HU19-CP01 | Muestra nombre, email, rol, estado y fecha de alta de cada usuario | Unitario + integración | 3 | ✅ Pasa |
-| HU19-CP02 | Busca por nombre o email | Unitario + integración | 3 | ✅ Pasa |
-| HU19-CP03 | Filtra por rol | Unitario + integración | 3 | ✅ Pasa |
-| HU19-CP04 | Filtra por estado | Unitario + integración | 3 | ✅ Pasa |
-| HU19-CP05 | El listado está paginado de 10 en 10 | Unitario + integración | 3 | ✅ Pasa |
+| HU19-CP01 | Muestra nombre, email, rol, estado y fecha de alta de cada usuario | Unitario + integración | 4 | 🔍 En revisión |
+| HU19-CP02 | Busca por nombre o email | Unitario + integración | 5 | 🔍 En revisión |
+| HU19-CP03 | Filtra por rol | Unitario + integración | 4 | 🔍 En revisión |
+| HU19-CP04 | Filtra por estado | Unitario + integración | 4 | 🔍 En revisión |
+| HU19-CP05 | El listado está paginado de 10 en 10 | Unitario + integración | 5 | 🔍 En revisión |
 | HU19-CP06 | Al cambiar la búsqueda o un filtro vuelve a la primera página | Integración | 2 | ✅ Pasa |
 | HU19-CP07 | Sin coincidencias muestra que no se han encontrado usuarios | Integración | 2 | ✅ Pasa |
 | HU19-CP08 | Si la API falla muestra un mensaje de error con reintento | Unitario + integración | 3 | ✅ Pasa |
@@ -230,6 +230,15 @@ Notas:
 | HU19-CP08 | `users.test.js` | `propaga un ApiError si la respuesta no es correcta` | Frontend · API | AB#63 | PR #41 | ✅ |
 | HU19-CP08 | `AdminUsersPage.test.jsx` | `si la API responde 500 muestra un mensaje de error` | Frontend · página | AB#64 | PR #41 | ✅ |
 | HU19-CP08 | `AdminUsersPage.test.jsx` | `tras un error, "Reintentar" vuelve a cargar el listado` | Frontend · página | AB#64 | PR #41 | ✅ |
+| HU19-CP01 | `ListadoUsuariosServiceTest` | `listarDelegaLaConsultaIntactaAlRepositorio` | Aplicación | AB#62 | PR por abrir | 🔍 |
+| HU19-CP02 | `UsuarioMongoAdapterTest` | `listarBuscaEnLosCamposVisiblesDelUsuario` | Infraestructura | AB#61 | PR por abrir | 🔍 |
+| HU19-CP02 | `UsuarioMongoAdapterTest` | `listarEscapaCaracteresEspecialesDeLaBusqueda` | Infraestructura | AB#61 | PR por abrir | 🔍 |
+| HU19-CP03 | `UsuarioMongoAdapterTest` | `listarFiltraPorRol` | Infraestructura | AB#61 | PR por abrir | 🔍 |
+| HU19-CP04 | `UsuarioMongoAdapterTest` | `listarFiltraPorEstadoActivo` | Infraestructura | AB#61 | PR por abrir | 🔍 |
+| HU19-CP05 | `ListadoUsuariosServiceTest` | `listarDevuelveLaPaginaProporcionadaPorElRepositorio` | Aplicación | AB#62 | PR por abrir | 🔍 |
+| HU19-CP05 | `UsuarioMongoAdapterTest` | `listarAplicaPaginacionYConservaElTotal` | Infraestructura | AB#61 | PR por abrir | 🔍 |
+
+El test web de acceso sin sesión está en `UsuarioControllerTest`, pero se considera técnico de seguridad y no un caso funcional de HU19.
 
 Rutas de los archivos de test (bajo `frontend/src/`):
 - `users.test.js`: `api/`

@@ -48,7 +48,7 @@ class ListadoUsuariosServiceTest {
     @DisplayName("HU19-CP01: el servicio delega la consulta intacta al repositorio")
     void listar_delegaLaConsultaIntactaAlRepositorio() {
         ListarUsuariosQuery query = new ListarUsuariosQuery(
-                "Ana", Rol.CLIENTE, false, 0, 10
+                "Ana", Rol.CLIENTE, "DESACTIVADO", 0, 10
         );
         UsuarioPage paginaEsperada = new UsuarioPage(List.of(), 0, 10, 0);
 

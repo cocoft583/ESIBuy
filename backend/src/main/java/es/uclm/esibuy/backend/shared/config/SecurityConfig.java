@@ -17,12 +17,14 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private static final String RUTA_REGISTRO = "/api/auth/registro";
+    private static final String RUTA_LISTADO_USUARIOS = "/api/admin/usuarios";
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, RUTA_REGISTRO).permitAll()
+                        .requestMatchers(HttpMethod.GET, RUTA_LISTADO_USUARIOS).hasRole("ADMINISTRADOR")
                         .anyRequest().authenticated())
                 .csrf(csrf -> csrf.ignoringRequestMatchers(RUTA_REGISTRO));
         return http.build();
